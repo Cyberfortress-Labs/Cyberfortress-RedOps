@@ -73,6 +73,14 @@ MODULES = {
         "description": "Fake PDF Dropper - T1204.002 User Execution",
         "noconsole": True,
     },
+    "malware-installer": {
+        "script": SRC_DIR / "malware-execution" / "fake_installer.py",
+        "name": "install",  # Looks like normal installer
+        "icon": None,  # Use default icon
+        "hidden_imports": [],
+        "description": "Fake Installer Dropper - T1204.002 + T1105",
+        "noconsole": False,  # Show console for fake progress bar
+    },
 }
 
 # ============================================================================
