@@ -1,0 +1,41 @@
+# ============================================================================
+# CYBERFORTRESS REDOPS - Suricata Rules for Network Scanning Detection
+# ============================================================================
+# Detects nmap scans and data exfiltration
+# Copy to: /var/lib/suricata/rules/local.rules
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# NMAP SCAN DETECTION
+# ----------------------------------------------------------------------------
+
+# Nmap -sn (Ping Scan / Host Discovery)
+alert icmp any any -> $HOME_NET any (msg:"SCAN NMAP Ping Sweep Detected"; itype:8; threshold:type both,track by_src,count 20,seconds 5; classtype:network-scan; sid:9002001; rev:1;)
+
+# Nmap SYN Scan
+alert tcp any any -> $HOME_NET any (msg:"SCAN NMAP SYN Scan Detected"; flags:S; threshold:type both,track by_src,count 30,seconds 10; classtype:network-scan; sid:9002002; rev:1;)
+
+# Nmap Multiple Port Scan
+alert tcp any any -> $HOME_NET 1:65535 (msg:"SCAN Rapid Port Scanning"; flags:S; threshold:type both,track by_src,count 50,seconds 10; classtype:network-scan; sid:9002003; rev:1;)
+
+# Nmap OS Detection (FIN/PSH/URG scan)
+alert tcp any any -> $HOME_NET any (msg:"SCAN NMAP FIN/PSH/URG Probe"; flags:FPU; classtype:network-scan; sid:9002004; rev:1;)
+
+# Nmap XMAS Scan
+alert tcp any any -> $HOME_NET any (msg:"SCAN NMAP XMAS Scan"; flags:FPU; classtype:network-scan; sid:9002005; rev:1;)
+
+# Nmap NULL Scan
+alert tcp any any -> $HOME_NET any (msg:"SCAN NMAP NULL Scan"; flags:0; classtype:network-scan; sid:9002006; rev:1;)
+
+# ----------------------------------------------------------------------------
+# DATA EXFILTRATION DETECTION
+# ----------------------------------------------------------------------------
+
+# Suspicious POST to external server
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"EXFIL Network Scan Data Upload"; flow:to_server,established; http.method; content:"POST"; http.uri; content:"/upload"; http.content_type; content:"application/json"; classtype:trojan-activity; sid:9002010; rev:1;)
+
+# Large base64 data in HTTP POST
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"EXFIL Base64 Encoded Data in HTTP POST"; flow:to_server,established; http.method; content:"POST"; http.request_body; content:"scan_results"; content:"base64"; classtype:trojan-activity; sid:9002011; rev:1;)
+
+# HealthCheck User-Agent (from trojan)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"EXFIL Suspicious HealthCheck User-Agent"; flow:to_server,established; http.user_agent; content:"HealthCheck"; classtype:trojan-activity; sid:9002012; rev:1;)

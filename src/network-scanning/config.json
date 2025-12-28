@@ -1,0 +1,17 @@
+{
+    "attacker": {
+        "host": "192.168.71.100",
+        "port": 8080,
+        "protocol": "http"
+    },
+    "scan": {
+        "target_network": "192.168.85.0/24",
+        "scan_type": "quick",
+        "ports": "22,80,443,3389,8080",
+        "timeout": 300
+    },
+    "exfil": {
+        "method": "http",
+        "endpoint": "/upload"
+    }
+}
