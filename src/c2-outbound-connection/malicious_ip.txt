@@ -1,0 +1,28 @@
+# Malicious IP List for IOC Trigger Testing
+# Format: One IP per line
+# Lines starting with # are comments
+#
+# Cảnh báo: Các IP này chỉ dùng cho mục đích kiểm thử bảo mật.
+# Đây là các IP đã được đăng ký trong MISP làm IOC.
+#
+# ============================================================================
+# LAB ENVIRONMENT IPs
+# ============================================================================
+
+# External Attacker (Kali Linux) - C2 Server giả lập
+192.168.71.100
+101.53.243.9
+# ============================================================================
+# SAMPLE MALICIOUS IPs (Public Known Bad IPs - for testing only)
+# Nguồn: Các IP từ threat intelligence feeds
+# ============================================================================
+
+# Ví dụ IP từ các nguồn threat intel (thay thế bằng IP thực tế từ MISP của bạn)
+# 185.220.101.1
+# 45.155.205.233
+# 91.219.236.222
+
+# ============================================================================
+# CUSTOM IOCs - Thêm các IP từ MISP của bạn vào đây
+# ============================================================================
+
