@@ -1,0 +1,52 @@
+# ============================================================================
+# CYBERFORTRESS REDOPS - Custom Suricata Rules for C2 Detection
+# ============================================================================
+# Copy these rules to: /var/lib/suricata/rules/local.rules
+# Then reload Suricata: suricatasc -c "reload-rules"
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# TCP CONNECTION ATTEMPTS - Detect even if server doesn't respond
+# Uses flags:S to detect TCP SYN packets (connection initiation)
+# ----------------------------------------------------------------------------
+
+# Detect TCP SYN to external port 80 (HTTP C2 attempt)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 80 (msg:"C2 Outbound TCP SYN to External HTTP Port"; flags:S; threshold:type limit,track by_src,count 3,seconds 60; classtype:trojan-activity; sid:9000001; rev:1; metadata:mitre_technique_id T1071;)
+
+# Detect TCP SYN to external port 443 (HTTPS C2 attempt)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"C2 Outbound TCP SYN to External HTTPS Port"; flags:S; threshold:type limit,track by_src,count 3,seconds 60; classtype:trojan-activity; sid:9000002; rev:1;)
+
+# Detect TCP SYN to any external port (generic C2 attempt)
+alert tcp $HOME_NET any -> $EXTERNAL_NET any (msg:"C2 Outbound TCP Connection Attempt"; flags:S; threshold:type limit,track by_src,count 5,seconds 60; classtype:trojan-activity; sid:9000003; rev:1;)
+
+# ----------------------------------------------------------------------------
+# C2 BEACON PATTERNS - For when connection IS established
+# ----------------------------------------------------------------------------
+
+# Detect beacon pattern in HTTP URI (GET /beacon)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"C2 Beacon Pattern Detected (GET /beacon)"; flow:to_server,established; http.method; content:"GET"; http.uri; content:"/beacon"; classtype:trojan-activity; sid:9000010; rev:2;)
+
+# Detect gate.php pattern (common malware C2 panel)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"C2 Gate.php Pattern Detected"; flow:to_server,established; http.uri; content:"/gate.php"; classtype:trojan-activity; sid:9000011; rev:1;)
+
+# Detect suspicious User-Agent (custom malware indicators)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"C2 Suspicious User-Agent (MalwareBot)"; flow:to_server,established; http.user_agent; content:"MalwareBot"; nocase; classtype:trojan-activity; sid:9000012; rev:1;)
+
+# Detect X-Bot-ID header (C2 beacon indicator)
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"C2 X-Bot-ID Header Detected"; flow:to_server,established; http.header; content:"X-Bot-ID"; nocase; classtype:trojan-activity; sid:9000013; rev:1;)
+
+# Detect type=beacon in POST body
+alert http $HOME_NET any -> $EXTERNAL_NET any (msg:"C2 Beacon POST Body Detected"; flow:to_server,established; http.method; content:"POST"; http.request_body; content:"type=beacon"; nocase; classtype:trojan-activity; sid:9000015; rev:1;)
+
+# ----------------------------------------------------------------------------
+# KNOWN C2 PORTS - Metasploit, Cobalt Strike, etc
+# ----------------------------------------------------------------------------
+
+# Metasploit default port
+alert tcp $HOME_NET any -> $EXTERNAL_NET 4444 (msg:"C2 Connection to Metasploit Port (4444)"; flags:S; classtype:trojan-activity; sid:9000020; rev:1;)
+
+# Cobalt Strike default port
+alert tcp $HOME_NET any -> $EXTERNAL_NET 5555 (msg:"C2 Connection to Common C2 Port (5555)"; flags:S; classtype:trojan-activity; sid:9000021; rev:1;)
+
+# Empire C2 default
+alert tcp $HOME_NET any -> $EXTERNAL_NET 8443 (msg:"C2 Connection to Empire Port (8443)"; flags:S; classtype:trojan-activity; sid:9000022; rev:1;)

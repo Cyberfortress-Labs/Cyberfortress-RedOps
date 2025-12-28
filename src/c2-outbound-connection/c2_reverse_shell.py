@@ -214,14 +214,14 @@ def show_decoy_document() -> None:
 
 def trigger_suricata_dns_alerts() -> None:
     """
-    Trigger Suricata alerts by sending HTTP requests with C2-like patterns.
-    Uses urllib for proper HTTP that Suricata can parse.
+    Trigger Suricata and Zeek alerts by sending C2-like traffic.
+    Sends both TCP SYN (for SID 9000001-9000003) and HTTP patterns (SID 9000010+).
     """
     import urllib.request
     import urllib.error
     
     logger = setup_logging(False)
-    logger.info("[*] Triggering C2 beacon patterns...")
+    logger.info("[*] Triggering C2 patterns for Suricata & Zeek...")
     
     # Get C2 host from config
     c2_host = _CONFIG.get("host", DEFAULT_C2_HOST)
@@ -229,6 +229,23 @@ def trigger_suricata_dns_alerts() -> None:
     
     hostname = socket.gethostname()
     username = os.getenv("USERNAME", os.getenv("USER", "unknown"))
+    
+    # ================================================================
+    # STEP 1: TCP SYN (triggers SID 9000001-9000003, Zeek port sigs)
+    # ================================================================
+    logger.info(f"[*] Sending TCP SYN to {c2_host}:{c2_port}...")
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2)
+        sock.connect_ex((c2_host, int(c2_port)))  # TCP SYN sent!
+        sock.close()
+        logger.info(f"[+] TCP SYN sent - triggers Suricata SID 9000001-9000003")
+    except:
+        logger.info(f"[+] TCP SYN attempt made")
+    
+    # ================================================================
+    # STEP 2: HTTP with C2 patterns (SID 9000010+, Zeek HTTP sigs)
+    # ================================================================
     
     # C2 beacon URLs with patterns that match Suricata rules
     beacon_patterns = [
