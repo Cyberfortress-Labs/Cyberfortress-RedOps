@@ -1,0 +1,33 @@
+# ============================================================================
+# CYBERFORTRESS REDOPS - Suricata Rules for SQL Injection Detection
+# ============================================================================
+# Copy to: /var/lib/suricata/rules/local.rules
+# Reload: suricatasc -c "reload-rules"
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# SQL INJECTION PATTERNS - Detect common SQLi payloads
+# ----------------------------------------------------------------------------
+
+# Union-based SQL Injection
+alert http any any -> $HOME_NET any (msg:"SQLI Union-Based SQL Injection Attempt"; flow:to_server,established; http.uri; content:"UNION"; nocase; content:"SELECT"; nocase; distance:0; within:20; classtype:web-application-attack; sid:9001001; rev:1;)
+
+# OR-based SQL Injection
+alert http any any -> $HOME_NET any (msg:"SQLI OR-Based SQL Injection (OR 1=1)"; flow:to_server,established; http.uri; pcre:"/(\%27|')(\s|%20)*(OR|or)(\s|%20)*('|%27)?1(\s|%20)*=(\s|%20)*('|%27)?1/i"; classtype:web-application-attack; sid:9001002; rev:1;)
+
+# Comment-based SQL Injection
+alert http any any -> $HOME_NET any (msg:"SQLI Comment Injection Attempt (-- or #)"; flow:to_server,established; http.uri; pcre:"/(\%27|')(\s|%20)*(--|%23|#)/"; classtype:web-application-attack; sid:9001003; rev:1;)
+
+# Information Schema Access
+alert http any any -> $HOME_NET any (msg:"SQLI Information Schema Access Attempt"; flow:to_server,established; http.uri; content:"information_schema"; nocase; classtype:web-application-attack; sid:9001004; rev:1;)
+
+# Time-based SQL Injection (SLEEP/WAITFOR)
+alert http any any -> $HOME_NET any (msg:"SQLI Time-Based Injection (SLEEP)"; flow:to_server,established; http.uri; content:"SLEEP"; nocase; pcre:"/SLEEP\s*\(\s*\d+\s*\)/i"; classtype:web-application-attack; sid:9001005; rev:1;)
+
+alert http any any -> $HOME_NET any (msg:"SQLI Time-Based Injection (WAITFOR)"; flow:to_server,established; http.uri; content:"WAITFOR"; nocase; classtype:web-application-attack; sid:9001006; rev:1;)
+
+# Single Quote Injection
+alert http any any -> $HOME_NET any (msg:"SQLI Single Quote Injection Attempt"; flow:to_server,established; http.uri; content:"%27"; content:"="; distance:0; within:20; classtype:web-application-attack; sid:9001007; rev:1;)
+
+# DVWA SQLi Specific
+alert http any any -> $HOME_NET any (msg:"SQLI Attack on DVWA SQLi Module"; flow:to_server,established; http.uri; content:"/vulnerabilities/sqli"; content:"id="; distance:0; pcre:"/id=.*(%27|'|UNION|SELECT|OR\s+\d)/i"; classtype:web-application-attack; sid:9001010; rev:1;)

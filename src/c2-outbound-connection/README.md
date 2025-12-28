@@ -86,6 +86,18 @@ dist/dropper-pdf/Report_Q4_2024.exe  # Fake PDF document
 
 ---
 
+
+## Deploy Zeek
+# Zeek
+cp c2_detection.zeek /opt/zeek/share/zeek/site/
+
+echo '@load base/frameworks/signatures' >> /opt/zeek/share/zeek/site/local.zeek
+
+echo '@load-sigs ./c2_detection.zeek' >> /opt/zeek/share/zeek/site/local.zeek
+
+
+zeekctl deploy
+
 ## Kết quả mong đợi
 
 ### Hệ thống phát hiện:
