@@ -1,0 +1,48 @@
+# ============================================================================
+# SMB Bruteforce Detection Rules for Suricata
+# ============================================================================
+# MITRE ATT&CK: T1110.001 - Brute Force: Password Guessing
+#               T1021.002 - Remote Services: SMB/Windows Admin Shares
+#
+# SID Range: 9004001 - 9004010
+# ============================================================================
+
+# SID 9004001: SMB Connection Flood Detection
+# Detects multiple SMB connection attempts from single source
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Bruteforce - Multiple Connection Attempts"; flow:to_server,established; threshold:type both,track by_src,count 10,seconds 60; classtype:attempted-admin; sid:9004001; rev:1;)
+
+# SID 9004002: SMB Negotiate Protocol Flood
+# Detects excessive SMB negotiate protocol requests
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Bruteforce - Negotiate Protocol Flood"; flow:to_server,established; content:"|ff|SMB"; offset:4; depth:4; content:"|72|"; offset:8; depth:1; threshold:type both,track by_src,count 15,seconds 60; classtype:attempted-admin; sid:9004002; rev:1;)
+
+# SID 9004003: SMB Session Setup Request Flood
+# Detects excessive SMB session setup requests (authentication attempts)
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Bruteforce - Session Setup Flood"; flow:to_server,established; content:"|ff|SMB"; offset:4; depth:4; content:"|73|"; offset:8; depth:1; threshold:type both,track by_src,count 20,seconds 60; classtype:attempted-admin; sid:9004003; rev:1;)
+
+# SID 9004004: SMB2 Session Setup Request Flood
+# Detects excessive SMB2/3 session setup requests
+alert tcp any any -> $HOME_NET 445 (msg:"SMB2 Bruteforce - Session Setup Flood"; flow:to_server,established; content:"|fe|SMB"; offset:4; depth:4; content:"|01 00|"; offset:12; depth:2; threshold:type both,track by_src,count 20,seconds 60; classtype:attempted-admin; sid:9004004; rev:1;)
+
+# SID 9004005: Metasploit SMB Login Scanner Detection
+# Detects Metasploit auxiliary/scanner/smb/smb_login module
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Bruteforce - Metasploit Scanner Detected"; flow:to_server,established; content:"|ff|SMB"; offset:4; depth:4; threshold:type both,track by_src,count 5,seconds 30; reference:url,attack.mitre.org/techniques/T1110/001; classtype:attempted-admin; sid:9004005; rev:1;)
+
+# SID 9004006: SMB NTLMSSP Authentication Flood
+# Detects excessive NTLMSSP authentication attempts
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Bruteforce - NTLMSSP Auth Flood"; flow:to_server,established; content:"NTLMSSP"; nocase; threshold:type both,track by_src,count 15,seconds 60; classtype:attempted-admin; sid:9004006; rev:1;)
+
+# SID 9004007: SMB Failed Authentication Pattern
+# Detects pattern of failed authentications (STATUS_LOGON_FAILURE)
+alert tcp $HOME_NET 445 -> any any (msg:"SMB Bruteforce - Multiple Login Failures"; flow:to_client,established; content:"|fe|SMB"; depth:4; content:"|6d 00 00 c0|"; offset:8; depth:4; threshold:type both,track by_dst,count 5,seconds 60; classtype:unsuccessful-user; sid:9004007; rev:1;)
+
+# SID 9004008: Rapid SMB Connection Attempts
+# Detects very rapid connection attempts (potential automated tool)
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Bruteforce - Rapid Connection Attempts"; flow:to_server; flags:S; threshold:type both,track by_src,count 30,seconds 10; classtype:attempted-admin; sid:9004008; rev:1;)
+
+# SID 9004009: SMB Admin Share Access Attempt
+# Detects attempts to access administrative shares after bruteforce
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Post-Bruteforce - Admin Share Access"; flow:to_server,established; content:"|ff|SMB"; offset:4; depth:4; content:"ADMIN$"; nocase; classtype:attempted-admin; sid:9004009; rev:1;)
+
+# SID 9004010: SMB C$ Share Access Attempt
+# Detects attempts to access C$ share after bruteforce
+alert tcp any any -> $HOME_NET 445 (msg:"SMB Post-Bruteforce - C$ Share Access"; flow:to_server,established; content:"|ff|SMB"; offset:4; depth:4; content:"C$"; nocase; classtype:attempted-admin; sid:9004010; rev:1;)

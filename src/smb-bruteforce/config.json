@@ -1,0 +1,17 @@
+{
+    "target": {
+        "host": "192.168.85.115",
+        "port": 445,
+        "username": "administrator"
+    },
+    "attack": {
+        "password_file": "/home/kali/demo-pass.txt",
+        "threads": 4,
+        "stop_on_success": false,
+        "timeout": 300
+    },
+    "detection": {
+        "suricata_sid_range": "9004001-9004010",
+        "windows_event_id": [4625, 4624, 4776]
+    }
+}
