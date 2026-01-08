@@ -1,15 +1,15 @@
 # SMB Bruteforce Attack Module
 
-Mô phỏng tấn công brute force SMB credentials sử dụng Metasploit Framework.
+Simulates SMB credential brute force attacks using Metasploit Framework.
 
 ## MITRE ATT&CK Mapping
 
-| Technique ID | Technique Name                            | Mô tả                           |
-| ------------ | ----------------------------------------- | ------------------------------- |
-| T1110.001    | Brute Force: Password Guessing            | Thử nhiều mật khẩu để đăng nhập |
-| T1021.002    | Remote Services: SMB/Windows Admin Shares | Truy cập SMB shares từ xa       |
+| Technique ID | Technique Name                            | Description                      |
+| ------------ | ----------------------------------------- | -------------------------------- |
+| T1110.001    | Brute Force: Password Guessing            | Try multiple passwords to log in |
+| T1021.002    | Remote Services: SMB/Windows Admin Shares | Access SMB shares remotely       |
 
-## Thành phần
+## Components
 
 ```
 src/smb-bruteforce/
@@ -19,7 +19,7 @@ src/smb-bruteforce/
 └── README.md                # This file
 ```
 
-## Cấu hình
+## Configuration
 
 **config.json:**
 ```json
@@ -37,38 +37,38 @@ src/smb-bruteforce/
 }
 ```
 
-## Quy trình thực hiện
+## Attack Flow
 
 ```
 ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐
 │  Kali Linux     │         │   Suricata      │         │  Windows Server │
-│  (Attacker)     │────────▶│   (IDS)         │────────▶│  (Target)       │
+│  (Attacker)     │────────>│   (IDS)         │────────>│  (Target)       │
 │  192.168.71.100 │         │                 │         │  192.168.85.115 │
 └─────────────────┘         └─────────────────┘         └─────────────────┘
         │                          │
         │ 1. ./smb_bruteforce.sh
         │ 2. Metasploit smb_login module
-        │ 3. Thử từng password trong wordlist
+        │ 3. Try each password in wordlist
         │ 4. SMB negotiate + session setup
         │                          │
         │                    5. Suricata detect SID 9004001-9004010
         │                    6. Windows Event ID 4625 (Failed Logon)
-        │                    7. Alert → Wazuh → SmartXDR
+        │                    7. Alert -> Wazuh -> SmartXDR
         │                          │
-        ▼                          ▼
+        v                          v
    [Credential Found]        [Block Attacker IP]
 ```
 
-## Thực thi
+## Execution
 
-**Yêu cầu:**
-- Kali Linux với Metasploit Framework
-- jq (để parse config.json)
+**Requirements:**
+- Kali Linux with Metasploit Framework
+- jq (for parsing config.json)
 - Password wordlist file
 
-**Chuẩn bị:**
+**Preparation:**
 ```bash
-# Tạo password wordlist
+# Create password wordlist
 cat > /home/kali/demo-pass.txt << 'EOF'
 password
 123456
@@ -81,14 +81,14 @@ Administrator
 EOF
 ```
 
-**Chạy attack:**
+**Run attack:**
 ```bash
 cd src/smb-bruteforce
 chmod +x smb_bruteforce.sh
 ./smb_bruteforce.sh
 ```
 
-**Hoặc chạy thủ công với Metasploit:**
+**Or run manually with Metasploit:**
 ```bash
 msfconsole -q
 
@@ -116,21 +116,21 @@ alert tcp $HOME_NET 445 -> any any (msg:"SMB Bruteforce - Multiple Login Failure
 
 ## Windows Event IDs
 
-| Event ID | Mô tả                                 |
+| Event ID | Description                           |
 | -------- | ------------------------------------- |
 | 4625     | An account failed to log on           |
 | 4624     | An account was successfully logged on |
 | 4776     | NTLM authentication attempt           |
 | 4740     | A user account was locked out         |
 
-## Kết quả mong đợi
+## Expected Results
 
-| Thành phần | Hành động                              |
-| ---------- | -------------------------------------- |
-| Suricata   | Alert SID 9004001-9004010              |
-| Windows    | Event ID 4625 (multiple failed logons) |
-| Wazuh      | Rule trigger → Active Response         |
-| SmartXDR   | Classify: ATTACK → Block Attacker IP   |
+| Component | Action                                 |
+| --------- | -------------------------------------- |
+| Suricata  | Alert SID 9004001-9004010              |
+| Windows   | Event ID 4625 (multiple failed logons) |
+| Wazuh     | Rule trigger -> Active Response        |
+| SmartXDR  | Classify: ATTACK -> Block Attacker IP  |
 
 ## Demo Output
 

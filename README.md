@@ -4,20 +4,24 @@ Attack simulation toolkit for testing SmartXDR detection capabilities, aligned w
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Attack Modules](#attack-modules)
-- [Project Structure](#project-structure)
-- [Requirements](#requirements)
-- [Build Tool](#build-tool)
-- [Module Details](#module-details)
-  - [C2 Outbound Connection](#c2-outbound-connection)
-  - [SQL Injection](#sql-injection)
-  - [Malware Execution](#malware-execution)
-  - [Network Scanning](#network-scanning)
-  - [SMB Bruteforce](#smb-bruteforce)
-- [Detection Rules Summary](#detection-rules-summary)
-- [Usage](#usage)
-- [License](#license)
+- [Cyberfortress RedOps](#cyberfortress-redops)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Attack Modules](#attack-modules)
+  - [Project Structure](#project-structure)
+  - [Requirements](#requirements)
+  - [Build Tool](#build-tool)
+    - [Commands](#commands)
+    - [Build Configurations](#build-configurations)
+  - [Module Details](#module-details)
+    - [C2 Outbound Connection](#c2-outbound-connection)
+    - [SQL Injection](#sql-injection)
+    - [Malware Execution](#malware-execution)
+    - [Network Scanning](#network-scanning)
+    - [SMB Bruteforce](#smb-bruteforce)
+  - [Detection Rules Summary](#detection-rules-summary)
+  - [Usage](#usage)
+  - [License](#license)
 
 ## Overview
 

