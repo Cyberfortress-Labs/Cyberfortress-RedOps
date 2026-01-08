@@ -1,6 +1,6 @@
 # Cyberfortress RedOps
 
-Attack simulation toolkit for testing SmartXDR detection capabilities, aligned with the MITRE ATT&CK framework.
+Attack simulation toolkit for testing Intelligent SOC Ecosystem detection capabilities, aligned with the MITRE ATT&CK framework.
 
 ## Table of Contents
 
